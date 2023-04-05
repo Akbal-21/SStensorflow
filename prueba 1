@@ -1,0 +1,83 @@
+//import * as tf from "@tensorflow/tfjs";
+import { GraphModel, loadGraphModel } from "@tensorflow/tfjs";
+import { useRef, useState } from "react";
+import SignatureCanvas from "react-signature-canvas";
+
+const modelPath = "/home/fernando/Escritorio/sstensorflow/model/model.json";
+
+export default function Home() {
+	//Se creaan los estados del modelo de prediccion
+	const [model, setModel] = useState<GraphModel>();
+	const [prediction, setPrediction] = useState<number>();
+	const canvasRef = useRef<SignatureCanvas>(null);
+
+	//Se carga el modelo al iniciar el componente
+
+	const loadmodel = async () => {
+		const loadedModel = await loadGraphModel(
+			"/home/fernando/Escritorio/sstensorflow/model/model.json",
+		);
+		setModel(loadedModel);
+	};
+	loadmodel();
+
+	//Se crea la referencia del canvas
+
+	//Se toma el contenido del canvas y se envia al modelo para la prediccion
+	const predict = async () => {
+		if (canvasRef.current) {
+			// ! ?.getCanvas() as HTMLCanvasElement
+
+			// const image = new Image();
+			// image.src = canvas.toDataURL();
+			//const image = canvas.toDataURL("imge/png");
+			//let imgElement;
+			// const imgElement = new Image();
+			// imgElement.src = image;
+			// imgElement.width = 28;
+			// imgElement.height = 28;
+
+			const canvas = canvasRef.current?.getCanvas() as HTMLCanvasElement;
+			const imageData = canvas.toDataURL("imge/png");
+			console.log(imageData);
+
+			// const input = browser.fromPixels(imageData);
+			// const output = model?.predict(input) as Tensor;
+			// const predictions = Array.from(output.dataSync());
+			// const predictedDigit = predictions.indexOf(Math.max(...predictions));
+			// setPrediction(predictedDigit);
+		}
+	};
+
+	const [imageUrl, setImageUrl] = useState("");
+
+	const handleSave = () => {
+		const dataUrl = canvasRef.current?.getTrimmedCanvas().toDataURL();
+		setImageUrl(dataUrl || "");
+	};
+
+	const handleclear = () => {
+		canvasRef.current?.clear();
+	};
+	return (
+		<>
+			<div>
+				<SignatureCanvas
+					ref={canvasRef}
+					backgroundColor=" #d6dbdf "
+					canvasProps={{ width: 200, height: 200 }}
+				/>
+			</div>
+			<div style={{ margin: "5px" }}>
+				<button onClick={handleSave}>Guardar</button>
+				<button onClick={predict}>Predecir</button>
+				<button onClick={handleclear}>Limpiar</button>
+			</div>
+			<div>
+				{imageUrl && (
+					<Image src={imageUrl} alt="signature" width={50} height={50} />
+				)}
+			</div>
+		</>
+	);
+}
