@@ -1,26 +1,30 @@
 //import * as tf from "@tensorflow/tfjs";
-import { GraphModel, loadGraphModel } from "@tensorflow/tfjs";
+import {
+	browser,
+	GraphModel,
+	image,
+	LayersModel,
+	loadLayersModel,
+} from "@tensorflow/tfjs";
+import Image from "next/image";
 import { useRef, useState } from "react";
 import SignatureCanvas from "react-signature-canvas";
 
-const modelPath = "/home/fernando/Escritorio/sstensorflow/model/model.json";
+const modelPath = "model.json";
 
 export default function Home() {
 	//Se creaan los estados del modelo de prediccion
-	const [model, setModel] = useState<GraphModel>();
-	const [prediction, setPrediction] = useState<number>();
+	const [model, setModel] = useState<LayersModel>();
+	const [prediction, setPrediction] = useState<number | undefined>();
 	const canvasRef = useRef<SignatureCanvas>(null);
 
-	//Se carga el modelo al iniciar el componente
-
-	const loadmodel = async () => {
-		const loadedModel = await loadGraphModel(
-			"/home/fernando/Escritorio/sstensorflow/model/model.json",
-		);
-		setModel(loadedModel);
+	const modelRef = useRef<GraphModel>();
+	//
+	const loadModel = async () => {
+		const modelref = await loadLayersModel("model.json");
+		setModel(modelref);
 	};
-	loadmodel();
-
+	loadModel();
 	//Se crea la referencia del canvas
 
 	//Se toma el contenido del canvas y se envia al modelo para la prediccion
@@ -28,24 +32,23 @@ export default function Home() {
 		if (canvasRef.current) {
 			// ! ?.getCanvas() as HTMLCanvasElement
 
-			// const image = new Image();
-			// image.src = canvas.toDataURL();
-			//const image = canvas.toDataURL("imge/png");
-			//let imgElement;
-			// const imgElement = new Image();
-			// imgElement.src = image;
-			// imgElement.width = 28;
-			// imgElement.height = 28;
-
 			const canvas = canvasRef.current?.getCanvas() as HTMLCanvasElement;
-			const imageData = canvas.toDataURL("imge/png");
-			console.log(imageData);
 
-			// const input = browser.fromPixels(imageData);
-			// const output = model?.predict(input) as Tensor;
-			// const predictions = Array.from(output.dataSync());
-			// const predictedDigit = predictions.indexOf(Math.max(...predictions));
-			// setPrediction(predictedDigit);
+			const input = browser.fromPixels(canvas);
+
+			const resized = image.resizeBilinear(input, [28, 28]);
+			const tensor = resized.expandDims(0).toFloat().div(255);
+
+			const predict = model?.predict(tensor);
+			if (!predict) {
+				console.log("No hay parametros");
+				return;
+			}
+			const predicts = Array.from(predict.toString());
+			console.log(predicts);
+			//const predictedDigit = prediction.indexOf(Math.max(...prediction));
+			// setPrediction(predicts.indexOf(Math.max(...predicts)));
+			// console.log(prediction);
 		}
 	};
 
