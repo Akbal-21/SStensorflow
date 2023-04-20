@@ -1,8 +1,8 @@
 // import * as tf from "@tensorflow/tfjs";
 
-import { browser, image, loadGraphModel } from "@tensorflow/tfjs";
+import { GraphModel, browser, image, loadGraphModel } from "@tensorflow/tfjs";
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import SignatureCanvas from "react-signature-canvas";
 
 // const modelUrl = "file://./model.json";
@@ -10,26 +10,36 @@ import SignatureCanvas from "react-signature-canvas";
 const modelUrl = "https://akbal-21.github.io/api_model/model.json";
 
 export default function Home() {
+	const [model, setModel] = useState<GraphModel>();
 	const [imageUrl, setImageUrl] = useState("");
 	const canvasRef = useRef<SignatureCanvas>(null);
 
-	// Se cargfa el modelo
+	useEffect(() => {
+		const loadModel = async () => {
+			console.log("Cargando Modelo");
+
+			const modelCharge = await loadGraphModel(modelUrl);
+			console.log("Modelo Cargado");
+			if (modelCharge) {
+				return <>Error al cargar el modelo</>;
+			}
+			setModel(modelCharge);
+		};
+		loadModel();
+	}, []);
+
+	console.log(model);
 
 	// Funcion para predecir digitos
 	const predict = async () => {
 		if (canvasRef.current) {
-			const model = await loadGraphModel(modelUrl);
 			const canvas = canvasRef.current?.getCanvas() as HTMLCanvasElement;
-			// const input = browser.fromPixels(canvas, 1);
-			// const resized = image.resizeBilinear(input, [28, 28]);
-			// const tensor = resized.expandDims(0).toFloat().div(255);
-			// console.log(tensor);
 			const img = browser.fromPixels(canvas, 1);
 			const imgResized = image.resizeBilinear(img, [28, 28]);
 			// const imgCast = cast(imgResized, "float32");
 			const tensor = imgResized.expandDims(0).toFloat().div(255);
 
-			const predict = model.predict(tensor);
+			const predict = model?.predict(tensor);
 			if (!predict) {
 				console.log("No hay parametros");
 				return;
