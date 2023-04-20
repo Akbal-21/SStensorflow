@@ -27,7 +27,7 @@ export default function Home() {
 			const img = browser.fromPixels(canvas, 1);
 			const imgResized = image.resizeBilinear(img, [28, 28]);
 			// const imgCast = cast(imgResized, "float32");
-			const tensor = imgResized.toFloat().div(255);
+			const tensor = imgResized.expandDims(0).toFloat().div(255);
 
 			const predict = model.predict(tensor);
 			if (!predict) {
