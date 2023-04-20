@@ -1,55 +1,42 @@
-import * as tf from "@tensorflow/tfjs";
+// import * as tf from "@tensorflow/tfjs";
 
-import { browser, image } from "@tensorflow/tfjs";
+import { browser, image, loadGraphModel } from "@tensorflow/tfjs";
 import Image from "next/image";
 import { useRef, useState } from "react";
 import SignatureCanvas from "react-signature-canvas";
 
 // const modelUrl = "file://./model.json";
 
-const modelUrl =
-	"https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json";
+const modelUrl = "https://akbal-21.github.io/api_model/model.json";
 
 export default function Home() {
 	const [imageUrl, setImageUrl] = useState("");
 	const canvasRef = useRef<SignatureCanvas>(null);
 
 	// Se cargfa el modelo
-	const loadModel = async () => {
-		// 	console.log("Loading model");
-		// 	const model = loadGraphModel("file://./model.json", { fromTFHub: true });
-		// 	if (!model) {
-		// 		return "Error al cargar el modelo";
-		// 	}
-		// 	console.log("Model loaded");
-		// 	console.log(model);
-		// 	return model;
-
-		const model = await tf.loadGraphModel(modelUrl);
-		const zeros = tf.zeros([1, 224, 224, 3]);
-		model.predict(zeros);
-		console.log(`Hola ${model.predict(zeros)}`);
-	};
-
-	//se asigna a la variable "model" el modelo
-	const model = loadModel();
-	// console.log(model);
 
 	// Funcion para predecir digitos
 	const predict = async () => {
 		if (canvasRef.current) {
+			const model = await loadGraphModel(modelUrl);
 			const canvas = canvasRef.current?.getCanvas() as HTMLCanvasElement;
-			const input = browser.fromPixels(canvas);
-			const resized = image.resizeBilinear(input, [28, 28]);
-			const tensor = resized.expandDims(0).toFloat().div(255);
-			// const predict = model.predict(tensor);
-			// if (!predict) {
-			// console.log("No hay parametros");
-			// return;
-			// }
+			// const input = browser.fromPixels(canvas, 1);
+			// const resized = image.resizeBilinear(input, [28, 28]);
+			// const tensor = resized.expandDims(0).toFloat().div(255);
+			// console.log(tensor);
+			const img = browser.fromPixels(canvas, 1);
+			const imgResized = image.resizeBilinear(img, [28, 28]);
+			// const imgCast = cast(imgResized, "float32");
+			const tensor = imgResized.toFloat().div(255);
+
+			const predict = model.predict(tensor);
+			if (!predict) {
+				console.log("No hay parametros");
+				return;
+			}
 			// const predicts = Array.from(predict.toString());
-			// console.log(predicts);
-			//const predictedDigit = prediction.indexOf(Math.max(...prediction));
+			console.log(predict);
+			// const predictedDigit = predicts.indexOf(Math.max(...prediction));
 			// setPrediction(predicts.indexOf(Math.max(...predicts)));
 			// console.log(prediction);
 		}
