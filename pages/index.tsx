@@ -76,7 +76,7 @@ export default function Home() {
 			<div>
 				<SignatureCanvas
 					ref={canvasRef}
-					backgroundColor=" #d6dbdf "
+					backgroundColor=" white"
 					dotSize={8}
 					minWidth={8}
 					maxWidth={8}
