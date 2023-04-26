@@ -80,7 +80,12 @@ export default function Home() {
 					dotSize={8}
 					minWidth={8}
 					maxWidth={8}
-					canvasProps={{ width: 200, height: 200 }}
+					canvasProps={{
+						width: 200,
+						height: 200,
+						style: { border: "2px solid #000" },
+						title: "Dibuja",
+					}}
 				/>
 			</div>
 			<div style={{ margin: "5px" }}>
