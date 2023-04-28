@@ -9,9 +9,6 @@ import ssApi from "../api/index";
 const modelUrl =
 	"https://raw.githubusercontent.com/francisco-renteria/francisco-renteria.github.io/main/digitos/model.json";
 
-const modelUrl2 =
-	"https://raw.githubusercontent.com/francisco-renteria/francisco-renteria.github.io/main/letras/model.json";
-const modelUrls = [modelUrl, modelUrl2];
 // rome-ignore lint/style/useConst: <explanation>
 let predict3: string = "";
 
@@ -24,12 +21,7 @@ export default function Home() {
 	// Se cargfa el modelo
 	useEffect(() => {
 		const loadmodel = async () => {
-			//letras 1
-			//digitos 0
-			const boo = 1;
-
-			const modelCharge = await loadLayersModel(modelUrls[boo]);
-			setModel(modelCharge);
+			const modelCharge = await loadLayersModel(modelUrl);
 			setModel(modelCharge);
 		};
 		loadmodel();
@@ -90,12 +82,6 @@ export default function Home() {
 			}
 		}
 		if (predictionsArray[0].length === 10) predict3 = String(maxIndex);
-
-		if (predictionsArray[0].length === 52)
-			if (maxIndex <= 25) predict3 = String.fromCharCode(maxIndex + 65);
-			else predict3 = String.fromCharCode(maxIndex + 71);
-
-		console.log(predict3);
 	};
 
 	const handleSave = () => {
