@@ -7,11 +7,7 @@ import SignatureCanvas from "react-signature-canvas";
 import ssApi from "../api/index";
 
 const modelUrl =
-	"https://raw.githubusercontent.com/francisco-renteria/francisco-renteria.github.io/main/digitos/model.json";
-
-const modelUrl2 =
 	"https://raw.githubusercontent.com/francisco-renteria/francisco-renteria.github.io/main/letras/model.json";
-const modelUrls = [modelUrl, modelUrl2];
 // rome-ignore lint/style/useConst: <explanation>
 let predict3: string = "";
 
@@ -24,12 +20,7 @@ export default function Home() {
 	// Se cargfa el modelo
 	useEffect(() => {
 		const loadmodel = async () => {
-			//letras 1
-			//digitos 0
-			const boo = 1;
-
-			const modelCharge = await loadLayersModel(modelUrls[boo]);
-			setModel(modelCharge);
+			const modelCharge = await loadLayersModel(modelUrl);
 			setModel(modelCharge);
 		};
 		loadmodel();
@@ -38,8 +29,6 @@ export default function Home() {
 	// Funcion para predecir digitos
 	const predict = async () => {
 		if (canvasRef.current) {
-			// const srcImg = canvasRef.current?.getTrimmedCanvas().toDataURL();
-			// setImageUrl(srcImg || "");
 			const canvas = canvasRef.current?.getCanvas() as HTMLCanvasElement;
 
 			const img = browser.fromPixels(canvas, 1);
@@ -61,16 +50,10 @@ export default function Home() {
 				// srcImg,
 				predict3,
 			);
-			// setPrediction(predict3);
 		}
 	};
 
-	const saveData = async (
-		// srcImg: string,
-		predict3: string,
-	) => {
-		// console.log({ srcImg, predict3 });
-
+	const saveData = async (predict3: string) => {
 		await ssApi({
 			method: "POST",
 			url: "/insertPredict",
@@ -89,7 +72,6 @@ export default function Home() {
 				maxIndex = i;
 			}
 		}
-		if (predictionsArray[0].length === 10) predict3 = String(maxIndex);
 
 		if (predictionsArray[0].length === 52)
 			if (maxIndex <= 25) predict3 = String.fromCharCode(maxIndex + 65);
