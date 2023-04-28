@@ -4,26 +4,32 @@ import { LayersModel, browser, image, loadLayersModel } from "@tensorflow/tfjs";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import SignatureCanvas from "react-signature-canvas";
+import ssApi from "../api/index";
 
-//! si se quiere cambiar por el nuestro se tiene que invertir el comentario del modelUrl
-const modelUrl = "https://akbal-21.github.io/api_model/number/model.json";
+const modelUrl =
+	"https://raw.githubusercontent.com/francisco-renteria/francisco-renteria.github.io/main/digitos/model.json";
 
-// const modelUrl =
-// "https://akbal-21.github.io/api_model/number_owner/model.json";
+const modelUrl2 =
+	"https://raw.githubusercontent.com/francisco-renteria/francisco-renteria.github.io/main/letras/model.json";
+const modelUrls = [modelUrl, modelUrl2];
+// rome-ignore lint/style/useConst: <explanation>
+let predict3: string = "";
 
 export default function Home() {
-	//! si se quiere cambiar por el nuestro se tiene que invertir el comentario del useState de model
 	const [model, setModel] = useState<LayersModel>();
-	// const [model, setModel] = useState<GraphModel>();
+	const [prediction, setPrediction] = useState("");
 	const [imageUrl, setImageUrl] = useState("");
 	const canvasRef = useRef<SignatureCanvas>(null);
 
 	// Se cargfa el modelo
 	useEffect(() => {
 		const loadmodel = async () => {
-			//! si se quiere cambiar por el nuestro se tiene que invertir el comentario del modelCharge
-			// const modelCharge = await loadGraphModel(modelUrl);
-			const modelCharge = await loadLayersModel(modelUrl);
+			//letras 1
+			//digitos 0
+			const boo = 1;
+
+			const modelCharge = await loadLayersModel(modelUrls[boo]);
+			setModel(modelCharge);
 			setModel(modelCharge);
 		};
 		loadmodel();
@@ -32,35 +38,64 @@ export default function Home() {
 	// Funcion para predecir digitos
 	const predict = async () => {
 		if (canvasRef.current) {
+			// const srcImg = canvasRef.current?.getTrimmedCanvas().toDataURL();
+			// setImageUrl(srcImg || "");
 			const canvas = canvasRef.current?.getCanvas() as HTMLCanvasElement;
 
 			const img = browser.fromPixels(canvas, 1);
 			const imgResized = image.resizeBilinear(img, [28, 28]);
-			const tensor = imgResized.toFloat().div(255).reshape([-1, 28, 28, 1]);
+			const tensor = imgResized.expandDims(0).toFloat().div(255);
 			const tensorNeg = tensor.mul(-1).add(1);
-			// const arr = await tensorNeg.array();
 
 			const predict = model?.predict(tensorNeg);
 			if (!predict) {
 				console.log("No hay parametros");
 				return;
 			}
-			// const predicts = Array.from(predict.toString());
-			console.log("predict");
-			const predictionsArray = await predict.array(); // Convertir tensor a array
 
-			// Encontrar la clase con la probabilidad más alta
-			let maxProb = -1;
-			let maxIndex = -1;
-			for (let i = 0; i < predictionsArray[0].length; i++) {
-				console.log(`Clase ${i}: ${predictionsArray[0][i] * 100}%`);
-				if (predictionsArray[0][i] > maxProb) {
-					maxProb = predictionsArray[0][i];
-					maxIndex = i;
-				}
-			}
-			console.log("Clase identificada:", maxIndex);
+			const predictionsArray = await predict.arraySync(); // Convertir tensor a array
+
+			prediccion(predictionsArray);
+
+			saveData(
+				// srcImg,
+				predict3,
+			);
+			// setPrediction(predict3);
 		}
+	};
+
+	const saveData = async (
+		// srcImg: string,
+		predict3: string,
+	) => {
+		// console.log({ srcImg, predict3 });
+
+		await ssApi({
+			method: "POST",
+			url: "/insertPredict",
+			data: { predict3 },
+		});
+	};
+
+	// rome-ignore lint/suspicious/noExplicitAny: <explanation>
+	const prediccion = (predictionsArray: any) => {
+		// Encontrar la clase con la probabilidad más alta
+		let maxProb = -1;
+		let maxIndex = -1;
+		for (let i = 0; i < predictionsArray[0].length; i++) {
+			if (predictionsArray[0][i] > maxProb) {
+				maxProb = predictionsArray[0][i];
+				maxIndex = i;
+			}
+		}
+		if (predictionsArray[0].length === 10) predict3 = String(maxIndex);
+
+		if (predictionsArray[0].length === 52)
+			if (maxIndex <= 25) predict3 = String.fromCharCode(maxIndex + 65);
+			else predict3 = String.fromCharCode(maxIndex + 71);
+
+		console.log(predict3);
 	};
 
 	const handleSave = () => {
@@ -93,6 +128,7 @@ export default function Home() {
 				<button onClick={predict}>Predecir</button>
 				<button onClick={handleclear}>Limpiar</button>
 			</div>
+
 			<div>
 				{imageUrl && (
 					<Image src={imageUrl} alt="signature" width={50} height={50} />
