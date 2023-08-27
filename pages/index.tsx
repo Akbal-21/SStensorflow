@@ -1,6 +1,13 @@
 // import * as tf from "@tensorflow/tfjs";
 
-import { LayersModel, browser, image, loadLayersModel } from "@tensorflow/tfjs";
+import {
+	LayersModel,
+	Rank,
+	Tensor,
+	browser,
+	image,
+	loadLayersModel,
+} from "@tensorflow/tfjs";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import SignatureCanvas from "react-signature-canvas";
@@ -13,11 +20,10 @@ const modelUrl2 =
 	"https://raw.githubusercontent.com/francisco-renteria/francisco-renteria.github.io/main/letras/model.json";
 const modelUrls = [modelUrl, modelUrl2];
 // rome-ignore lint/style/useConst: <explanation>
-let predict3: string = "";
+let predict3 = "";
 
 export default function Home() {
 	const [model, setModel] = useState<LayersModel>();
-	const [prediction, setPrediction] = useState("");
 	const [imageUrl, setImageUrl] = useState("");
 	const canvasRef = useRef<SignatureCanvas>(null);
 
@@ -47,20 +53,21 @@ export default function Home() {
 			const tensor = imgResized.expandDims(0).toFloat().div(255);
 			const tensorNeg = tensor.mul(-1).add(1);
 
-			const predict = model?.predict(tensorNeg);
-			if (!predict) {
+			const predict: Tensor<Rank> | Tensor<Rank>[] | undefined =
+				model?.predict(tensorNeg);
+
+			if (!predict || !(predict instanceof Tensor)) {
 				console.log("No hay parametros");
 				return;
 			}
 
-			const predictionsArray = await predict.arraySync(); // Convertir tensor a array
+			const predictionsArray = predict.arraySync(); // Convertir tensor a array
+			console.log(typeof predict);
+
+			console.log(predictionsArray);
 
 			prediccion(predictionsArray);
 
-			saveData(
-				// srcImg,
-				predict3,
-			);
 			// setPrediction(predict3);
 		}
 	};
@@ -124,8 +131,11 @@ export default function Home() {
 				/>
 			</div>
 			<div style={{ margin: "5px" }}>
+				{/* rome-ignore lint/a11y/useButtonType: <explanation> */}
 				<button onClick={handleSave}>Guardar</button>
+				{/* rome-ignore lint/a11y/useButtonType: <explanation> */}
 				<button onClick={predict}>Predecir</button>
+				{/* rome-ignore lint/a11y/useButtonType: <explanation> */}
 				<button onClick={handleclear}>Limpiar</button>
 			</div>
 
