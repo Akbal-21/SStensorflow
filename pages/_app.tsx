@@ -2,6 +2,7 @@
 import type { AppProps } from "next/app";
 import "reflect-metadata";
 import { SWRConfig } from "swr";
+import { Analytics } from '@vercel/analytics/react';
 
 export default function App({ Component, pageProps }: AppProps) {
 	return (
@@ -12,6 +13,7 @@ export default function App({ Component, pageProps }: AppProps) {
 			}}
 		>
 			<Component {...pageProps} />
+			<Analytics/>
 		</SWRConfig>
 	);
 }
